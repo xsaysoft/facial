@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Video Capture </title>
+<link href="js_example_style.css" rel="stylesheet" type="text/css" />
+<style>
+    video, img {
+      max-width:100%;
+    }
+  </style>
+</head>
+<body>
+    <div id='results'>
+        <video autoplay></video>
+       
+      </div>
+      <div class = 'video'>
+        <img id="image">
+    </div>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.slim.js"></script>
+<script>
+    (function() {
+      'use strict';
+      var video = document.querySelector('video')
+        , canvas;
+  
+      /**
+       *  generates a still frame image from the stream in the <video>
+       *  appends the image to the <body>
+       */
+      var phone ='07063047170'
+       var socket = io(location.origin + '/face',
+    {query: 'phone=' + phone, 'transports': ['websocket']});
+
+        socket.on('connect', function(message){
+            console.log("Connected...!", socket.connected )
+        });
+
+      if (navigator.mediaDevices) {
+        // access the web cam
+        navigator.mediaDevices.getUserMedia({video: true})
+        // permission granted:
+          .then(function(stream) {
+            video.srcObject = stream
+            //video.play()
+            video.addEventListener('click', takeSnapshot);
+          })
+          // permission denied:
+          .catch(function(error) {
+            document.body.textContent = 'Could not access the camera. Error: ' + error.name;
+          });
+      }
+      function takeSnapshot (){
+      var img = document.querySelector('img') || document.createElement('img');
+        var context;
+        var width = video.offsetWidth
+          , height = video.offsetHeight;
+  
+        canvas = canvas || document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+  
+        context = canvas.getContext('2d');
+        context.drawImage(video, 0, 0, width, height);
+        var data = canvas.toDataURL('image/png');
+        let dataURL = data.substr(data.indexOf(',') + 1);
+        //console.log(dataURL)
+        socket.emit('image', dataURL);
+       
+   
+    //    Preview
+    //    img.src = canvas.toDataURL('image/png');
+    //    document.body.appendChild(img);
+
+    // const FPS = 22;
+
+    // setInterval(() => {
+
+    //     console.log(dataURL)
+        
+    //    socket.emit('image', dataURL);
+    // }, 10000/FPS);
+
+      }
+  
+      socket.on('response_back', function(msg){
+        const image_id = document.getElementById('image');
+       console.log('back',msg)
+        image_id.src = image;
+    });
+
+    })();
+  
+  </script>
+</body>
+</html>
+
+   
