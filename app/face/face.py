@@ -34,6 +34,24 @@ def enrollment():
     """Return the client application."""
     train("face_extracted/train", model_save_path="face_extracted/trained_dir/dataset_faces.dat", n_neighbors=2)
     return jsonify({'data': "Training complete!"}), 201
+
+
+@face_bp.route('/bio_update',methods=['POST'])
+def updatebio():
+    if not 'new_phone' in request.json:
+            return  {'status': "error","data": {"code":107,"message": "Missing (new_phone) field."}}, 200 
+    if not 'old_phone' in request.json:
+            return  {'status': "error","data": {"code":107,"message": "Missing (old_phone) field."}}, 200 
+    new_phone=request.json['new_phone']
+    old_phone=request.json['old_phone']
+ 
+    try:
+        os.rename("face_extracted/train/"+old_phone,"face_extracted/train/"+new_phone)
+        os.rename("face_extracted/faces/"+old_phone,"face_extracted/faces/"+new_phone)
+    except:
+        return  {'status': "error","data": {"code":101,"message": "invalid model details."}}, 200 
+    print ("Successfully renamed.")
+    return  {'status': "successful","data": {"code":100,"message": "Successfully Updated."}}, 200
    
 
 @socketio.on('connect', namespace='/face')
